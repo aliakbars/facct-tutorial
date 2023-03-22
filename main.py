@@ -9,8 +9,12 @@ from sqlmodel import Session, SQLModel, create_engine, select
 from models import *
 
 import pandas as pd
+import yaml
 
-sqlite_file_name = "database.db"
+with open("config.yml", "r") as config_file:
+    config = yaml.safe_load(config_file)
+
+sqlite_file_name = config["database"]
 sqlite_url = f"sqlite:///{sqlite_file_name}"
 
 connect_args = {"check_same_thread": False}
@@ -38,6 +42,7 @@ def on_startup():
 async def root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
+
 @app.get("/paper/{hits_id}", response_class=HTMLResponse)
 async def paper(request: Request, hits_id: int):
     try:
@@ -45,13 +50,6 @@ async def paper(request: Request, hits_id: int):
     except:
         paper_urls = []
     return templates.TemplateResponse("index.html", {"request": request, "paper_urls": paper_urls})
-
-# @app.post("/paper/{hits_id}")
-# async def save_form_data(hits_data: HitsBase):
-#     with Session(engine) as session:
-#         session.add(hits_data)
-#         session.commit()
-#     return hits_data
 
 @app.post("/paper/{hits_id}")
 async def save_form_data(
@@ -328,44 +326,4 @@ async def save_form_data(
     with Session(engine) as session:
         session.add(hits_data)
         session.commit()
-    return RedirectResponse(url="https://app.prolific.co/submissions/complete?cc=C157221E", status_code=status.HTTP_303_SEE_OTHER)
-
-@app.post("/datasets/", response_model=DatasetRead)
-def create_dataset(*, session: Session = Depends(get_session), dataset: DatasetCreate):
-    db_dataset = Dataset.from_orm(dataset)
-    session.add(db_dataset)
-    session.commit()
-    session.refresh(db_dataset)
-    return db_dataset
-
-@app.get("/datasets/", response_model=List[DatasetRead])
-def read_datasets(*, session: Session = Depends(get_session)):
-    datasets = session.exec(select(Dataset)).all()
-    return datasets
-
-@app.get('/dataset/{dataset_id}', response_model=DatasetReadWithParticipants)
-def read_dataset(*, session: Session = Depends(get_session), dataset_id: int):
-    dataset = session.get(Dataset, dataset_id)
-    if not dataset:
-        raise HTTPException(status_code=404, detail="Dataset not found")
-    return dataset
-
-@app.post("/participants/", response_model=ParticipantRead)
-def create_participant(*, session: Session = Depends(get_session), participant: ParticipantCreate):
-    db_participant = Participant.from_orm(participant)
-    session.add(db_participant)
-    session.commit()
-    session.refresh(db_participant)
-    return db_participant
-
-@app.get("/participants/", response_model=List[ParticipantRead])
-def read_participants(*, session: Session = Depends(get_session)):
-    participants = session.exec(select(Participant)).all()
-    return participants
-
-@app.get('/participant/{participant_id}', response_model=ParticipantReadWithDataset)
-def read_participant(*, session: Session = Depends(get_session), participant_id: int):
-    participant = session.get(Participant, participant_id)
-    if not participant:
-        raise HTTPException(status_code=404, detail="Participant not found")
-    return participant
+    return RedirectResponse(url=config["redirect_url"], status_code=status.HTTP_303_SEE_OTHER)

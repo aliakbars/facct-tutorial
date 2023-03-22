@@ -5,12 +5,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
-    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
-    <meta name="generator" content="Hugo 0.108.0">
-    <title>Data Extraction from PDF Documents</title>
+    <meta name="author" content="Ali Akbar Septiandri">
+    <title>Data Extraction from a PDF Document</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
         integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
 
     <!-- Favicons -->
     <meta name="theme-color" content="#712cf9">
@@ -76,11 +76,11 @@
 <body class="bg-light">
     <div class="container">
         <div class="py-5 text-center">
-            <h1>Data Extraction from PDF Documents</h1>
+            <h1>Data Extraction from a PDF Document</h1>
         </div>
         <div class="alert alert-info" role="alert">
             <h3>Instructions</h3>
-            <p>Task: Extract information from a set of 5 PDF documents</p>
+            <p>Task: Extract information from a PDF document</p>
             <p>Collect the following information from the given document:</p>
             <ul>
                 <li>
@@ -95,7 +95,7 @@
                     <strong>Dataset information</strong>
                     <ul>
                         <li>Dataset name</li>
-                        <li>Human (e.g., users, patients, survey participants) vs. non-human subjects (e.g., animals,
+                        <li>Human (e.g., users, accounts, patients, survey participants) vs. non-human subjects (e.g., animals,
                             tweets, medical records, images)</li>
                         <li>Off-the-shelf (e.g., from UCI Machine Learning Repository, Kaggle) vs. author-collected</li>
                         <li>URL of the dataset (if available)</li>
@@ -109,8 +109,12 @@
                     </ul>
                 </li>
             </ul>
+        </div>
+
+        <div class="alert alert-warning" role="alert">
+            <h4><i class="bi bi-exclamation-triangle-fill" style="vertical-align: top;"></i> Prioritize human-subject data</h4>
             <p>
-                <strong>Prioritize human-subject data.</strong> If you cannot find human-subject, report the number of
+                If you cannot find human-subject, report the number of
                 records and select "Non-human" in the "Subject type" field.
                 For example, if you have a dataset collected from Twitter, report the <strong>number of users</strong>
                 when available instead of the number of tweets.
@@ -192,32 +196,28 @@
             </table>
         </div>
         <main>
-            <form id="weird-form" method="post" onsubmit="submitForm(event)">
-                <div class="col-12">
-                    <label for="prolific_id" class="form-label"><h3>Prolific ID</h3></label>
-                    <input name="prolific_id" type="text" class="form-control" id="prolific_id" placeholder="" required>
-                    <div class="invalid-feedback">
-                        Please enter a valid Prolific ID.
-                    </div>
-                </div>
-                <hr>
-
-                {% for paper_id in range(1, 6) %}
-                <h3>Paper #{{ paper_id }}</h3>
+            <form id="weird-form" method="post" onsubmit="">
+                <h3>Paper</h3>
                 <div class="row justify-content-center">
                     <div class="col-md-7">
-                        <iframe class="col-md-12" src="{{ paper_urls[paper_id-1] }}"
+                        <iframe class="col-md-12" src="{{ paper_url }}"
                             height="800px"></iframe>
                     </div>
                     <div class="col-md-5">
                         
                         <h4 class="mb-3">Paper information</h4>
-                        <input name="paper_url_{{ paper_id }}" type="hidden" value="{{ paper_urls[paper_id-1] }}">
+                        <input name="paper_url" type="hidden" value="{{ paper_url }}">
+                        <input name="annotator_id" type="hidden" value="{{ annotator_id }}">
                         <div class="row g-3">
                             <div class="col-sm-9">
                                 <label for="country-author" class="form-label">Country</label>
-                                {% for i in range(1, 6) %}
-                                <select name="affiliation_country_{{ paper_id }}_{{ i }}" class="form-select" id="country-author" {% if i==1 %}required{% endif %}>
+                            </div>
+                            <div class="col-sm-3">
+                                <label for="nb-authors" class="form-label"># authors</label>
+                            </div>
+                            {% for i in range(1, 6) %}
+                            <div class="col-sm-9">
+                                <select name="author_country" class="form-select" id="country-author" {% if i==1 %}required{% endif %}>
                                     <option value="">Choose...</option>
                                     <option value="AFG">Afghanistan</option>
                                     <option value="ALA">Åland Islands</option>
@@ -453,7 +453,7 @@
                                     <option value="UGA">Uganda</option>
                                     <option value="UKR">Ukraine</option>
                                     <option value="ARE">United Arab Emirates</option>
-                                    <option value="GBR">United Kingdom of Great Britain and Northern Ireland</option>
+                                    <option value="GBR">United Kingdom</option>
                                     <option value="USA">United States of America</option>
                                     <option value="UMI">United States Minor Outlying Islands</option>
                                     <option value="URY">Uruguay</option>
@@ -469,30 +469,19 @@
                                     <option value="ZMB">Zambia</option>
                                     <option value="ZWE">Zimbabwe</option>
                                 </select>
-                                {% endfor %}
                                 <div class="invalid-feedback">
                                     Please select a valid country.
                                 </div>
                             </div>
 
                             <div class="col-sm-3">
-                                <label for="nb-authors" class="form-label"># authors</label>
-                                <input name="nb_authors_{{ paper_id }}_1" type="number" class="form-control" id="nb-authors"
-                                    placeholder="" value="" required>
-                                <input name="nb_authors_{{ paper_id }}_2" type="number" class="form-control" id="nb-authors"
-                                    placeholder="" value="">
-                                <input name="nb_authors_{{ paper_id }}_3" type="number" class="form-control" id="nb-authors"
-                                    placeholder="" value="">
-                                <input name="nb_authors_{{ paper_id }}_4" type="number" class="form-control" id="nb-authors"
-                                    placeholder="" value="">
-                                <input name="nb_authors_{{ paper_id }}_5" type="number" class="form-control" id="nb-authors"
-                                    placeholder="" value="">
+                                <input name="nb_authors" type="number" class="form-control" id="nb-authors" placeholder="" value="" {% if i==1 %}required{% endif %}>
                             </div>
+                            {% endfor %}
 
                             <div class="col-12">
                                 <label for="email" class="form-label">Corresponding author email <span class="text-muted">(optional)</span></label>
-                                <input name="author_email_{{ paper_id }}" type="email" class="form-control" id="email"
-                                    placeholder="you@example.com">
+                                <input name="author_email" type="email" class="form-control" id="email" placeholder="you@example.com">
                                 <div class="invalid-feedback">
                                     Please enter a valid email address.
                                 </div>
@@ -506,39 +495,72 @@
                         <div class="row gy-3">
                             <div class="col-sm-12">
                                 <label for="dataset-name" class="form-label">Dataset name <span class="text-muted">(optional)</span></label>
-                                <input name="dataset_name_{{ paper_id }}" type="text" class="form-control" id="dataset-name" placeholder="">
+                                <input name="dataset_name" type="text" class="form-control" id="dataset-name" placeholder="">
                             </div>
 
                             <div class="col-sm-12">
-                                <label for="url" class="form-label">Dataset URL <span class="text-muted">(optional)</span></label>
-                                <input name="url_{{ paper_id }}" type="text" class="form-control" id="url" placeholder="https://example.com/">
+                                <label for="dataset_url" class="form-label">Dataset URL <span class="text-muted">(optional)</span></label>
+                                <input name="dataset_url" type="text" class="form-control" id="dataset_url" placeholder="https://example.com/">
                             </div>
 
                             <div>
                                 <label for="subject-type" class="form-label">Subject type</label>
                                 <div class="form-check">
-                                    <input id="human-{{ paper_id }}" name="subject_type_{{ paper_id }}" type="radio"
-                                        value="human" class="form-check-input" required>
-                                    <label class="form-check-label" for="human-{{ paper_id }}">Human (e.g., users, patients, survey participants)</label>
+                                    <input id="human" name="subject_type" type="radio" value="human" class="form-check-input" required>
+                                    <label class="form-check-label" for="human">Human (e.g., users, accounts, patients, survey participants)</label>
                                 </div>
                                 <div class="form-check">
-                                    <input id="non-human-{{ paper_id }}" name="subject_type_{{ paper_id }}" type="radio"
-                                        value="non_human" class="form-check-input">
-                                    <label class="form-check-label" for="non-human-{{ paper_id }}">Non-human (e.g., tweets, medical records, images)</label>
+                                    <input id="non-human" name="subject_type" type="radio" value="non_human" class="form-check-input">
+                                    <label class="form-check-label" for="non-human">Non-human (e.g., tweets, medical records, images)</label>
                                 </div>
                             </div>
 
                             <div>
                                 <label for="origin" class="form-label">Origin</label>
                                 <div class="form-check">
-                                    <input id="off-the-shelf-{{ paper_id }}" name="origin_{{ paper_id }}" type="radio" value="off_the_shelf" class="form-check-input" required>
-                                    <label class="form-check-label" for="off-the-shelf-{{ paper_id }}">Off-the-shelf (e.g., UCI Machine Learning Repository, Kaggle)</label>
+                                    <input id="author-collected" name="origin" type="radio" value="author_collected" class="form-check-input">
+                                    <label class="form-check-label" for="author-collected">Author-collected</label>
                                 </div>
                                 <div class="form-check">
-                                    <input id="author-collected-{{ paper_id }}" name="origin_{{ paper_id }}" type="radio" value="author_collected" class="form-check-input">
-                                    <label class="form-check-label" for="author-collected-{{ paper_id }}">Author-collected</label>
+                                    <input id="off-the-shelf" name="origin" type="radio" value="off_the_shelf" class="form-check-input" required>
+                                    <label class="form-check-label" for="off-the-shelf">Off-the-shelf (e.g., UCI Machine Learning Repository, Kaggle)</label>
                                 </div>
                             </div>
+
+                            <div>
+                                <label class="form-label"><strong>How did the authors collect the data? (Can be more than one)</strong></label>
+                                <div class="form-check">
+                                    <input id="in_situ-lab" name="in_situ_lab" type="checkbox" value="true" class="form-check-input">
+                                    <label class="form-check-label" for="in_situ-lab">In the laboratory (e.g., interview, devices)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input id="in_situ-field" name="in_situ_field" type="checkbox" value="true" class="form-check-input">
+                                    <label class="form-check-label" for="in_situ-field">In the field (e.g., ethnographic study, observational study)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input id="in_situ-crowd" name="in_situ_crowd" type="checkbox" value="true" class="form-check-input">
+                                    <label class="form-check-label" for="in_situ-crowd">Using online crowdsourcing platforms (e.g., Amazon Mechanical Turk, Prolific)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input id="in_situ-social" name="in_situ_social" type="checkbox" value="true" class="form-check-input">
+                                    <label class="form-check-label" for="in_situ-social">From social media (e.g., Facebook, Twitter, Reddit)</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div>
+                            <p>The test you are about to take part in is very simple, when asked for your favourite city, you must select 'Jakarta'. This is an attention check.</p>
+                            <label for="attention-check" class="form-label"><strong>Based on the text you read above, what city have you been asked to enter?</strong></label>
+                            <select name="attention_check" class="form-select" id="attention-check" required>
+                                <option value="">Choose...</option>
+                                <option>New York</option>
+                                <option>Rio de Janeiro</option>
+                                <option>Casablanca</option>
+                                <option>Jakarta</option>
+                                <option>London</option>
+                            </select>
                         </div>
 
                         <hr class="my-4">
@@ -548,8 +570,13 @@
                         <div class="row g-3">
                             <div class="col-sm-9">
                                 <label for="country-participant" class="form-label">Country of participants</label>
-                                {% for i in range(1, 6) %}
-                                <select name="participant_country_{{ paper_id }}_{{ i }}" class="form-select" id="country-participant" {% if i==1 %}required{% endif %}>
+                            </div>
+                            <div class="col-sm-3">
+                                <label for="nb-participants" class="form-label">Frequency</label>
+                            </div>
+                            {% for i in range(1, 6) %}
+                            <div class="col-sm-9">
+                                <select name="participant_country" class="form-select" id="country-participant" {% if i==1 %}required{% endif %}>
                                     <option value="">Choose...</option>
                                     <option value="N/A">N/A</option>
                                     <option value="AFG">Afghanistan</option>
@@ -786,7 +813,7 @@
                                     <option value="UGA">Uganda</option>
                                     <option value="UKR">Ukraine</option>
                                     <option value="ARE">United Arab Emirates</option>
-                                    <option value="GBR">United Kingdom of Great Britain and Northern Ireland</option>
+                                    <option value="GBR">United Kingdom</option>
                                     <option value="USA">United States of America</option>
                                     <option value="UMI">United States Minor Outlying Islands</option>
                                     <option value="URY">Uruguay</option>
@@ -802,56 +829,56 @@
                                     <option value="ZMB">Zambia</option>
                                     <option value="ZWE">Zimbabwe</option>
                                 </select>
-                                {% endfor %}
                             </div>
 
                             <div class="col-sm-3">
-                                <label for="nb-participants" class="form-label">Frequency</label>
-                                <input name="nb_participants_{{ paper_id }}_1" type="number" class="form-control"
-                                    id="nb-participants" placeholder="" required>
-                                <input name="nb_participants_{{ paper_id }}_2" type="number" class="form-control"
-                                    id="nb-participants" placeholder="">
-                                <input name="nb_participants_{{ paper_id }}_3" type="number" class="form-control"
-                                    id="nb-participants" placeholder="">
-                                <input name="nb_participants_{{ paper_id }}_4" type="number" class="form-control"
-                                    id="nb-participants" placeholder="">
-                                <input name="nb_participants_{{ paper_id }}_5" type="number" class="form-control"
-                                    id="nb-participants" placeholder="">
+                                <input name="nb_participants" type="number" class="form-control" id="nb-participants" placeholder="" {% if i==1 %}required{% endif %}>
+                            </div>
+                            {% endfor %}
+
+                            <div>
+                                <label for="local" class="form-label"><strong>Were the methods in this study adapted to the local context of the study participants?</strong></label>
+                                <div class="form-check">
+                                    <input id="local-yes" name="local" type="radio" value="yes" class="form-check-input" required>
+                                    <label class="form-check-label" for="local-yes">Yes</label>
+                                </div>
+                                <div class="form-check">
+                                    <input id="local-partially" name="local" type="radio" value="partially" class="form-check-input">
+                                    <label class="form-check-label" for="local-partially">Partially</label>
+                                </div>
+                                <div class="form-check">
+                                    <input id="local-no" name="local" type="radio" value="no" class="form-check-input">
+                                    <label class="form-check-label" for="local-no">No</label>
+                                </div>
+                                <div class="form-check">
+                                    <input id="local-na" name="local" type="radio" value="n/a" class="form-check-input">
+                                    <label class="form-check-label" for="local-na">Not applicable</label>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="diverse" class="form-label"><strong>Were university students used as study participants?</strong></label>
+                                <div class="form-check">
+                                    <input id="diverse-yes" name="diverse" type="radio" value="yes" class="form-check-input" required>
+                                    <label class="form-check-label" for="diverse-yes">Yes, only students</label>
+                                </div>
+                                <div class="form-check">
+                                    <input id="diverse-partially" name="diverse" type="radio" value="partially" class="form-check-input">
+                                    <label class="form-check-label" for="diverse-partially">Partially, students and another cohort (e.g., adults, children)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input id="diverse-no" name="diverse" type="radio" value="no" class="form-check-input">
+                                    <label class="form-check-label" for="diverse-no">No, other cohorts were used</label>
+                                </div>
+                                <div class="form-check">
+                                    <input id="diverse-na" name="diverse" type="radio" value="n/a" class="form-check-input">
+                                    <label class="form-check-label" for="diverse-na">No mention of population demographics</label>
+                                </div>
                             </div>
                         </div>
-                        {% if paper_id == 1 %}
-                        <hr>
-                        <div>
-                            <p>The test you are about to take part in is very simple, when asked for your favourite city, you must select 'Jakarta'. This is an attention check.</p>
-                            <label for="check-1" class="form-label"><strong>Based on the text you read above, what city have you been asked to enter?</strong></label>
-                            <select name="check_1" class="form-select" id="check-1" required>
-                                <option value="">Choose...</option>
-                                <option>New York</option>
-                                <option>Jakarta</option>
-                                <option>Rio de Janeiro</option>
-                                <option>Casablanca</option>
-                                <option>London</option>
-                            </select>
-                        </div>
-                        {% elif paper_id == 4 %}
-                        <hr>
-                        <div>
-                            <p>The test you are about to take part in is very simple, when asked for your favourite country, you must select 'Hungary'. This is an attention check.</p>
-                            <label for="check-2" class="form-label"><strong>Based on the text you read above, what country have you been asked to enter?</strong></label>
-                            <select name="check_2" class="form-select" id="check-2" required>
-                                <option value="">Choose...</option>
-                                <option>Ethiopia</option>
-                                <option>Colombia</option>
-                                <option>Vietnam</option>
-                                <option>Hungary</option>
-                                <option>Canada</option>
-                            </select>
-                        </div>
-                        {% endif %}
                     </div>
                 </div>
                 <hr>
-                {% endfor %}
                 <button class="w-100 btn btn-primary btn-lg" type="submit">Submit</button>
             </form>
         </main>

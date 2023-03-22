@@ -1,6 +1,7 @@
-from typing import List, Optional
+from datetime import datetime
+from typing import List, Dict, Optional
 
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import SQLModel, Field, Relationship, Column, JSON
 
 class HitsBase(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -138,45 +139,38 @@ class HitsBase(SQLModel, table=True):
     check_1: str
     check_2: str
 
-class StudyBase(SQLModel):
+class Annotator(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    affiliation: str
-    country: str
-    nb_authors: int
+    prolific_id: str
+    study_id: str
+    session_id: str
+    created_at: datetime = Field(default=datetime.now())
 
-class DatasetBase(SQLModel):
-    name: str
-    is_human: bool
-    is_off_the_shelf: bool
+class Paper(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
     url: str
+    locked: bool = Field(default=False)
+    locked_by: Optional[int] = Field(default=None, foreign_key="annotator.id")
+    lock_time: Optional[datetime] = Field(default=None)
 
-class ParticipantBase(SQLModel):
-    country: str
-    frequency: int
-    dataset_id: Optional[int] = Field(default=None, foreign_key="dataset.id")
+def lock(paper: Paper, locked_by: int):
+    paper.locked = True
+    paper.locked_by = locked_by
+    paper.lock_time = datetime.now()
+    return paper
 
-class Dataset(DatasetBase, table=True):
+def unlock(paper: Paper):
+    paper.locked = False
+    paper.locked_by = None
+    paper.lock_time = None
+    return paper
+
+class Annotation(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    participants: List["Participant"] = Relationship(back_populates="dataset")
-
-class DatasetCreate(DatasetBase):
-    pass
-
-class DatasetRead(DatasetBase):
-    id: int
-
-class Participant(ParticipantBase, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    dataset: Optional[Dataset] = Relationship(back_populates="participants")
-
-class ParticipantCreate(ParticipantBase):
-    pass
-
-class ParticipantRead(ParticipantBase):
-    id: int
-
-class ParticipantReadWithDataset(ParticipantRead):
-    dataset: Optional[ParticipantRead] = None
-
-class DatasetReadWithParticipants(DatasetRead):
-    participants: List[Participant] = []
+    paper_id: int = Field(foreign_key="paper.id")
+    annotator_id: int = Field(foreign_key="annotator.id")
+    attention_check: str
+    author_email: Optional[str] = Field(default=None)
+    variables: Dict = Field(default={}, sa_column=Column(JSON))
+    is_valid: Optional[bool] = Field(default=None)
+    created_at: datetime = Field(default=datetime.now())
