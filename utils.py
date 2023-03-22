@@ -3,6 +3,7 @@ from models import Paper, unlock
 from sqlmodel import Session, SQLModel, create_engine, select
 
 import logging
+import pandas as pd
 import threading
 import time
 import yaml
@@ -25,6 +26,15 @@ connect_args = {"check_same_thread": False}
 engine = create_engine(sqlite_url, echo=True, connect_args=connect_args)
 
 CUTOFF_TIME = config["cutoff_time"]
+
+def add_papers():
+    df = pd.read_csv(config["papers_file"])
+    with Session(engine) as session:
+        for url in df["url"].iloc[:20].values:
+            paper = session.exec(select(Paper).where(Paper.url == url)).first()
+            if not paper:
+                session.add(Paper(url=url))
+                session.commit()
 
 def release_locks_thread():
     with Session(engine) as session:
