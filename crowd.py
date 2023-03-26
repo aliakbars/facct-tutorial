@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlmodel import Session, SQLModel, create_engine, select
 from models import *
+from paper_lock import RedisPaperLock
 
 import logging
 import yaml
@@ -40,6 +41,8 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 templates = Jinja2Templates(directory="static/templates")
+
+redis_paper_lock = RedisPaperLock.get()
 
 @app.on_event("startup")
 def on_startup():
@@ -93,7 +96,11 @@ async def root(request: Request, PROLIFIC_ID: str, STUDY_ID: str, SESSION_ID: st
             session.commit()
 
             paper = session.exec(select(Paper).where(Paper.id == paper.id)).one()
-            paper = lock(paper, annotator.id)
+            # additional lock from redis
+            if redis_paper_lock.lock(paper.id):
+                paper = lock(paper, annotator.id)
+            
+
             session.add(paper)
             session.commit()
             session.refresh(paper)
@@ -136,7 +143,9 @@ async def save_paper(
     paper = session.exec(
         select(Paper).where(Paper.url == paper_url)
     ).first()
-    unlock(paper)
+    # unlock from redis first, then unlock at database
+    if redis_paper_lock.unlock(paper.id):
+        unlock(paper)
     session.commit()
 
     dataset = {
