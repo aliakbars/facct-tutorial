@@ -49,10 +49,14 @@ def on_startup():
     create_db_and_tables()
 
 @app.get("/")
-async def root(request: Request, PROLIFIC_ID: str, STUDY_ID: str, SESSION_ID: str, session: Session = Depends(get_session)):
+async def root(request: Request, PROLIFIC_PID: str, STUDY_ID: str, SESSION_ID: str, session: Session = Depends(get_session)):
+    prolific_id = PROLIFIC_PID
+    study_id = STUDY_ID
+    session_id = SESSION_ID
+
     # Check if exists
     annotator = session.exec(
-        select(Annotator).where(Annotator.prolific_id == PROLIFIC_ID, Annotator.study_id == STUDY_ID, Annotator.session_id == SESSION_ID)
+        select(Annotator).where(Annotator.prolific_id == prolific_id, Annotator.study_id == study_id, Annotator.session_id == session_id)
     ).first()
 
     if annotator:
