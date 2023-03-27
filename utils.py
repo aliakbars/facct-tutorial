@@ -36,6 +36,13 @@ def add_papers():
                 session.add(Paper(url=url))
                 session.commit()
 
+def release_all_locks():
+    with Session(engine) as session:
+        for paper in session.exec(select(Paper).where(Paper.locked)):
+            unlock(paper)
+            session.add(paper)
+            session.commit()
+
 def release_locks_thread():
     with Session(engine) as session:
         while True:

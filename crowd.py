@@ -9,6 +9,7 @@ from models import *
 from paper_lock import RedisPaperLock
 
 import logging
+import utils
 import yaml
 
 with open("config.yml", "r") as config_file:
@@ -70,17 +71,26 @@ async def root(request: Request, PROLIFIC_PID: str, STUDY_ID: str, SESSION_ID: s
 
             # Already has a paper and not finished
             if paper and (datetime.now() - paper.lock_time).seconds < CUTOFF_TIME:
-                return templates.TemplateResponse(
-                    "wild.html",
-                    {
-                        "request": request,
+                if config["debug"]:
+                    return {
                         "paper_url": paper.url,
                         "annotator_id": annotator.id
                     }
-                )
+                else:
+                    return templates.TemplateResponse(
+                        "wild.html",
+                        {
+                            "request": request,
+                            "paper_url": paper.url,
+                            "annotator_id": annotator.id
+                        }
+                    )
             else:
                 # Somehow did not finish
-                return {"status": "error", "message": "No available papers to annotate."}
+                if config["debug"]:
+                    return {"status": "error", "message": "No available papers to annotate."}
+                else:
+                    return templates.TemplateResponse("error.html", {"request": request})
     else:
         paper = session.exec("""
         select
@@ -106,17 +116,26 @@ async def root(request: Request, PROLIFIC_PID: str, STUDY_ID: str, SESSION_ID: s
             session.add(paper)
             session.commit()
             session.refresh(paper)
-            return templates.TemplateResponse(
-                "wild.html",
-                {
-                    "request": request,
+            if config["debug"]:
+                return {
                     "paper_url": paper.url,
                     "annotator_id": annotator.id
                 }
-            )
+            else:
+                return templates.TemplateResponse(
+                    "wild.html",
+                    {
+                        "request": request,
+                        "paper_url": paper.url,
+                        "annotator_id": annotator.id
+                    }
+                )
         else:
             logger.error(f"No available papers to annotate")
-            return {"status": "error", "message": "No available papers to annotate. Please try again later."}
+            if config["debug"]:
+                return {"status": "error", "message": "No available papers to annotate. Please try again later."}
+            else:
+                return templates.TemplateResponse("error.html", {"request": request})
 
 @app.post("/")
 async def save_paper(
