@@ -92,18 +92,16 @@ async def root(request: Request, PROLIFIC_PID: str, STUDY_ID: str, SESSION_ID: s
         where true
             and not locked
         """).first()
-
-        if paper:
+        
+        # additional lock from redis
+        if paper and redis_paper_lock.lock(paper.id):
             # Only create an annotator if there is an available paper
             annotator = Annotator(prolific_id=prolific_id, study_id=study_id, session_id=session_id)
             session.add(annotator)
             session.commit()
 
             paper = session.exec(select(Paper).where(Paper.id == paper.id)).one()
-            # additional lock from redis
-            if redis_paper_lock.lock(paper.id):
-                paper = lock(paper, annotator.id)
-            
+            paper = lock(paper, annotator.id)
 
             session.add(paper)
             session.commit()

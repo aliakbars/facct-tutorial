@@ -10,6 +10,7 @@ from models import *
 
 import pandas as pd
 import yaml
+import uvicorn
 
 with open("config.yml", "r") as config_file:
     config = yaml.safe_load(config_file)
@@ -327,3 +328,6 @@ async def save_form_data(
         session.add(hits_data)
         session.commit()
     return RedirectResponse(url=config["redirect_url"], status_code=status.HTTP_303_SEE_OTHER)
+
+if __name__ == '__main__':
+    uvicorn.run(app, host="0.0.0.0", port=7123)

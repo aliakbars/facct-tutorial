@@ -15,10 +15,10 @@ class RedisPaperLock(PaperLock):
     def get():
         """ Singleton pattern to instantiate RedisPaperLock
         """
-        if not _instance:
-            _instance = RedisPaperLock()
+        if not RedisPaperLock._instance:
+            RedisPaperLock._instance = RedisPaperLock()
         
-        return _instance
+        return RedisPaperLock._instance
         
     def __init__(self, redis_url="redis://localhost:6379/1", base_lock_key="paper_lock") -> None:
         self._redis = Redis.from_url(redis_url)
