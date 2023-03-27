@@ -83,15 +83,15 @@ async def root(request: Request, PROLIFIC_PID: str, STUDY_ID: str, SESSION_ID: s
                 return {"status": "error", "message": "No available papers to annotate."}
     else:
         paper = session.exec("""
-            select
-                paper.id
-            from
-                paper left join annotation
-                    on paper.id == annotation.paper_id
-                    and (not annotation.is_valid or annotation.is_valid is NULL)
-            where true
-                and not locked
-            """).first()
+        select
+            paper.id
+        from
+            paper left join annotation
+                on paper.id == annotation.paper_id
+                and (not annotation.is_valid or annotation.is_valid is NULL)
+        where true
+            and not locked
+        """).first()
         
         # additional lock from redis
         if paper and redis_paper_lock.lock(paper.id):
@@ -101,7 +101,7 @@ async def root(request: Request, PROLIFIC_PID: str, STUDY_ID: str, SESSION_ID: s
             session.commit()
 
             paper = session.exec(select(Paper).where(Paper.id == paper.id)).one()
-            # paper = lock(paper, annotator.id)
+            paper = lock(paper, annotator.id)
 
             session.add(paper)
             session.commit()
@@ -146,10 +146,9 @@ async def save_paper(
         select(Paper).where(Paper.url == paper_url)
     ).first()
     # unlock from redis first, then unlock at database
-    redis_paper_lock.unlock(paper.id)
-    # if redis_paper_lock.unlock(paper.id):
-        # unlock(paper)
-    # session.commit()
+    if redis_paper_lock.unlock(paper.id):
+        unlock(paper)
+    session.commit()
 
     dataset = {
         "dataset_name": dataset_name,
