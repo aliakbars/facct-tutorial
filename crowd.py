@@ -165,8 +165,8 @@ async def save_paper(
         select(Paper).where(Paper.url == paper_url)
     ).first()
     # unlock from redis first, then unlock at database
-    if redis_paper_lock.unlock(paper.id):
-        unlock(paper)
+    redis_paper_lock.unlock(paper.id)
+    unlock(paper)
     session.commit()
 
     dataset = {

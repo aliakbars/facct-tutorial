@@ -38,7 +38,7 @@ class RedisPaperLock(PaperLock):
             return False
         
         redis_lock = Redlock(key=self._lock_key(id), masters={self._redis}, auto_release_time=1)
-        if redis_lock.locked:
+        if redis_lock.locked():
             redis_lock.release()
             del self._paper_lock[id]
             return True
