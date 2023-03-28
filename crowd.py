@@ -96,11 +96,17 @@ async def root(request: Request, PROLIFIC_PID: str, STUDY_ID: str, SESSION_ID: s
         select
             paper.id
         from
-            paper left join annotation
-                on paper.id == annotation.paper_id
-                and (not annotation.is_valid or annotation.is_valid is NULL)
+            paper
         where true
             and not locked
+            and paper.id not in
+                (
+                    select paper_id
+                    from annotation
+                    where true
+                        and annotation.is_valid
+                        or annotation.is_valid is NULL
+                )
         """).first()
         
         # additional lock from redis
