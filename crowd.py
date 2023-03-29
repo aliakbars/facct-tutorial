@@ -110,7 +110,7 @@ async def root(request: Request, PROLIFIC_PID: str, STUDY_ID: str, SESSION_ID: s
         """).first()
         
         # additional lock from redis
-        if paper and redis_paper_lock.lock(paper.id):
+        if paper:
             # Only create an annotator if there is an available paper
             annotator = Annotator(prolific_id=prolific_id, study_id=study_id, session_id=session_id)
             session.add(annotator)
@@ -170,8 +170,6 @@ async def save_paper(
     paper = session.exec(
         select(Paper).where(Paper.url == paper_url)
     ).first()
-    # unlock from redis first, then unlock at database
-    redis_paper_lock.unlock(paper.id)
     unlock(paper)
     session.commit()
 
