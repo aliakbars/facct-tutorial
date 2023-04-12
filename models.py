@@ -5,7 +5,8 @@ from sqlmodel import SQLModel, Field, Relationship, Column, JSON
 
 class HitsBase(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    prolific_id: str
+    paper_id: int = Field(foreign_key="paper.id")
+    annotator_id: int = Field(foreign_key="annotator.id")
     affiliation_country_1_1: str
     affiliation_country_1_2: Optional[str] = None
     affiliation_country_1_3: Optional[str] = None
@@ -138,6 +139,8 @@ class HitsBase(SQLModel, table=True):
     url_5: Optional[str] = None
     check_1: str
     check_2: str
+    is_valid: Optional[bool] = Field(default=None)
+    created_at: datetime = Field(default=datetime.now())
 
 class Annotator(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

@@ -30,7 +30,7 @@ CUTOFF_TIME = config["cutoff_time"]
 def add_papers():
     df = pd.read_csv(config["papers_file"])
     with Session(engine) as session:
-        for url in df["url"].iloc[:20].values:
+        for url in df["url"].values:
             paper = session.exec(select(Paper).where(Paper.url == url)).first()
             if not paper:
                 session.add(Paper(url=url))

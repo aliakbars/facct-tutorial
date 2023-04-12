@@ -192,16 +192,9 @@
             </table>
         </div>
         <main>
-            <form id="weird-form" method="post" onsubmit="submitForm(event)">
-                <div class="col-12">
-                    <label for="prolific_id" class="form-label"><h3>Prolific ID</h3></label>
-                    <input name="prolific_id" type="text" class="form-control" id="prolific_id" placeholder="" required>
-                    <div class="invalid-feedback">
-                        Please enter a valid Prolific ID.
-                    </div>
-                </div>
-                <hr>
-
+            <form id="weird-form" method="post" onsubmit="">
+                <input name="paper_id" type="hidden" value="{{ paper_id }}">
+                <input name="annotator_id" type="hidden" value="{{ annotator_id }}">
                 {% for paper_id in range(1, 6) %}
                 <h3>Paper #{{ paper_id }}</h3>
                 <div class="row justify-content-center">
@@ -453,7 +446,7 @@
                                     <option value="UGA">Uganda</option>
                                     <option value="UKR">Ukraine</option>
                                     <option value="ARE">United Arab Emirates</option>
-                                    <option value="GBR">United Kingdom of Great Britain and Northern Ireland</option>
+                                    <option value="GBR">United Kingdom</option>
                                     <option value="USA">United States of America</option>
                                     <option value="UMI">United States Minor Outlying Islands</option>
                                     <option value="URY">Uruguay</option>
@@ -786,7 +779,7 @@
                                     <option value="UGA">Uganda</option>
                                     <option value="UKR">Ukraine</option>
                                     <option value="ARE">United Arab Emirates</option>
-                                    <option value="GBR">United Kingdom of Great Britain and Northern Ireland</option>
+                                    <option value="GBR">United Kingdom</option>
                                     <option value="USA">United States of America</option>
                                     <option value="UMI">United States Minor Outlying Islands</option>
                                     <option value="URY">Uruguay</option>
@@ -822,7 +815,7 @@
                         {% if paper_id == 1 %}
                         <hr>
                         <div>
-                            <p>The test you are about to take part in is very simple, when asked for your favourite city, you must select 'Jakarta'. This is an attention check.</p>
+                            <p>The test you are about to take part in is very simple, when asked for your favourite city, you must select 'Rio de Janeiro'. This is an attention check.</p>
                             <label for="check-1" class="form-label"><strong>Based on the text you read above, what city have you been asked to enter?</strong></label>
                             <select name="check_1" class="form-select" id="check-1" required>
                                 <option value="">Choose...</option>

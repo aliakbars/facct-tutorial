@@ -7,6 +7,7 @@ from fastapi.templating import Jinja2Templates
 from sqlmodel import Session, SQLModel, create_engine, select
 
 from models import *
+import utils
 
 import pandas as pd
 import yaml
@@ -17,6 +18,8 @@ with open("config.yml", "r") as config_file:
 
 sqlite_file_name = config["database"]
 sqlite_url = f"sqlite:///{sqlite_file_name}"
+
+CUTOFF_TIME = config["cutoff_time"]
 
 connect_args = {"check_same_thread": False}
 engine = create_engine(sqlite_url, echo=True, connect_args=connect_args)
@@ -35,27 +38,118 @@ templates = Jinja2Templates(directory="static/templates")
 
 @app.on_event("startup")
 def on_startup():
-    global df
-    df = pd.read_csv('static/hits-5-test.csv')
     create_db_and_tables()
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
+@app.get("/paper-set")
+async def paper(request: Request, PROLIFIC_PID: str, STUDY_ID: str, SESSION_ID: str, session: Session = Depends(get_session)):
+    prolific_id = PROLIFIC_PID
+    study_id = STUDY_ID
+    session_id = SESSION_ID
 
-@app.get("/paper/{hits_id}", response_class=HTMLResponse)
-async def paper(request: Request, hits_id: int):
-    try:
-        paper_urls = df.iloc[hits_id-1].values
-    except:
-        paper_urls = []
-    return templates.TemplateResponse("index.html", {"request": request, "paper_urls": paper_urls})
+    # Check if exists
+    annotator = session.exec(
+        select(Annotator).where(Annotator.prolific_id == prolific_id, Annotator.study_id == study_id, Annotator.session_id == session_id)
+    ).first()
 
-@app.post("/paper/{hits_id}")
+    if annotator:
+        if (datetime.now() - annotator.created_at).seconds > CUTOFF_TIME:
+            return {"status": "error", "message": "You have exceeded the time limit"}
+        else:
+            paper = session.exec(select(Paper).where(
+                Paper.locked_by == annotator.id
+            )).first()
+
+            # Already has a paper and not finished
+            if paper and (datetime.now() - paper.lock_time).seconds < CUTOFF_TIME:
+                if config["debug"]:
+                    return {
+                        "paper_urls": eval(paper.url),
+                        "paper_id": paper.id,
+                        "annotator_id": annotator.id
+                    }
+                else:
+                    return templates.TemplateResponse(
+                        "index.html",
+                        {
+                            "request": request,
+                            "paper_id": paper.id,
+                            "paper_urls": eval(paper.url),
+                            "annotator_id": annotator.id
+                        }
+                    )
+            else:
+                # Somehow did not finish
+                if config["debug"]:
+                    return {"status": "error", "message": "No available papers to annotate."}
+                else:
+                    return templates.TemplateResponse("error.html", {"request": request})
+    else:
+        paper = session.exec("""
+        select
+            paper.id
+        from
+            paper
+        where true
+            and not locked
+            and paper.id not in
+                (
+                    select paper_id
+                    from hitsbase
+                    where true
+                        and hitsbase.is_valid
+                        or hitsbase.is_valid is NULL
+                )
+        """).first()
+        
+        if paper:
+            # Only create an annotator if there is an available paper
+            annotator = Annotator(
+                prolific_id=prolific_id,
+                study_id=study_id,
+                session_id=session_id,
+                created_at=datetime.now(),
+            )
+            session.add(annotator)
+            session.commit()
+
+            paper = session.exec(select(Paper).where(Paper.id == paper.id)).one()
+            paper = lock(paper, annotator.id)
+
+            session.add(paper)
+            session.commit()
+            session.refresh(paper)
+            if config["debug"]:
+                return {
+                    "paper_urls": eval(paper.url),
+                    "paper_id": paper.id,
+                    "annotator_id": annotator.id
+                }
+            else:
+                return templates.TemplateResponse(
+                    "index.html",
+                    {
+                        "request": request,
+                        "paper_id": paper.id,
+                        "paper_urls": eval(paper.url),
+                        "annotator_id": annotator.id
+                    }
+                )
+        else:
+            if config["debug"]:
+                return {"status": "error", "message": "No available papers to annotate. Please try again later."}
+            else:
+                return templates.TemplateResponse("error.html", {"request": request})
+
+@app.post("/paper-set")
 async def save_form_data(
     request: Request,
-    prolific_id: str = Form(...),
+    session: Session = Depends(get_session),
+    paper_id: str = Form(...),
+    annotator_id: str = Form(...),
     affiliation_country_1_1: str = Form(...),
     affiliation_country_1_2: Optional[str] = Form(None),
     affiliation_country_1_3: Optional[str] = Form(None),
@@ -190,7 +284,8 @@ async def save_form_data(
     check_2: str = Form(...),
 ):
     hits_data = HitsBase(
-        prolific_id=prolific_id,
+        paper_id=paper_id,
+        annotator_id=annotator_id,
         affiliation_country_1_1=affiliation_country_1_1,
         affiliation_country_1_2=affiliation_country_1_2,
         affiliation_country_1_3=affiliation_country_1_3,
@@ -323,10 +418,16 @@ async def save_form_data(
         url_5=url_5,
         check_1=check_1,
         check_2=check_2,
+        created_at=datetime.now(),
     )
-    with Session(engine) as session:
-        session.add(hits_data)
-        session.commit()
+
+    paper = session.exec(
+        select(Paper).where(Paper.id == paper_id)
+    ).first()
+    unlock(paper)
+
+    session.add(hits_data)
+    session.commit()
     return RedirectResponse(url=config["redirect_url"], status_code=status.HTTP_303_SEE_OTHER)
 
 if __name__ == '__main__':
