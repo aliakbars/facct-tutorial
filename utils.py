@@ -2,6 +2,7 @@ from datetime import datetime
 from models import Paper, unlock
 from sqlmodel import Session, SQLModel, create_engine, select
 
+import click
 import logging
 import pandas as pd
 import threading
@@ -27,6 +28,11 @@ engine = create_engine(sqlite_url, echo=True, connect_args=connect_args)
 
 CUTOFF_TIME = config["cutoff_time"]
 
+@click.group()
+def cli():
+    pass
+
+@cli.command()
 def add_papers():
     df = pd.read_csv(config["papers_file"])
     with Session(engine) as session:
@@ -36,6 +42,7 @@ def add_papers():
                 session.add(Paper(url=url))
                 session.commit()
 
+@cli.command()
 def release_all_locks():
     with Session(engine) as session:
         for paper in session.exec(select(Paper).where(Paper.locked)):
@@ -55,6 +62,10 @@ def release_locks_thread():
 
             time.sleep(5)
 
-if __name__ == "__main__":
+@cli.command()
+def release_locks():
     lock_thread = threading.Thread(target=release_locks_thread)
     lock_thread.start()
+
+if __name__ == "__main__":
+    cli()
