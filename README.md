@@ -44,6 +44,10 @@ poetry run python utils.py add-papers
 ```
 after changing the `papers_file` argument in the `config.yml` file.
 
+## Putting Into Production
+
+Follow the steps described in this [blog post](https://dylancastillo.co/fastapi-nginx-gunicorn/#step-3-set-up-your-fastapi-app) to put the app into production. Make sure you only set 1 worker to avoid multiple submissions for the same set of papers. Use config files provided in the `configs` folder for `supervisor`. The `weird.conf` file is for the main app, whereas the `wlock.conf` file is for releasing the locks of the papers to avoid double entries.
+
 ## Contributing
 
 If you'd like to contribute to WEIRD Platform, fork the repository and make your changes. Then, create a pull request to merge your changes back into the main branch.
