@@ -40,11 +40,11 @@ templates = Jinja2Templates(directory="static/templates")
 def on_startup():
     create_db_and_tables()
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/landing", response_class=HTMLResponse)
 async def root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-@app.get("/paper-set")
+@app.get("/")
 async def paper(request: Request, PROLIFIC_PID: str, STUDY_ID: str, SESSION_ID: str, session: Session = Depends(get_session)):
     prolific_id = PROLIFIC_PID
     study_id = STUDY_ID
@@ -144,7 +144,7 @@ async def paper(request: Request, PROLIFIC_PID: str, STUDY_ID: str, SESSION_ID: 
             else:
                 return templates.TemplateResponse("error.html", {"request": request})
 
-@app.post("/paper-set")
+@app.post("/")
 async def save_form_data(
     request: Request,
     session: Session = Depends(get_session),
