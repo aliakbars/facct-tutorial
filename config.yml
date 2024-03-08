@@ -2,5 +2,5 @@ database: example.db
 cutoff_time: 1800
 logfile: crowd.log
 redirect_url: https://app.prolific.co/submissions/complete?cc=C157221E
-papers_file: static/dataset_papers.csv
+papers_file: static/full-papers.csv
 debug: false
