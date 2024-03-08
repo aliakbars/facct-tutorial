@@ -62,11 +62,9 @@ poetry shell
 1. Update the `configs/wlock.conf` file by changing the path for `command` to the Python path in your virtual environment (changing the `.../activate` you got from step 2 to `.../python`)
 1. Copy the `configs/weird.conf` and `configs/wlock.conf` files to `/etc/supervisor/conf.d`. You need `sudo` access for this.
 1. Restart `supervisor`, e.g. `sudo service supervisor restart`.
+1. Setup NGINX by following the steps described in this [blog post](https://dylancastillo.co/fastapi-nginx-gunicorn/#step-5-configure-nginx). Make sure you change the paths to your app.
 
 The `weird.conf` file is for the main app, whereas the `wlock.conf` file is for releasing the locks of the papers to avoid double entries. Make sure you only set 1 worker to avoid multiple submissions for the same set of papers.
-
-> [!NOTE]
-> As an alternative, you can follow the steps described in this [blog post](https://dylancastillo.co/fastapi-nginx-gunicorn/#step-4-configure-gunicorn) to put the app into production.
 
 ## Contributing
 
