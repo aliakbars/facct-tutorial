@@ -12,12 +12,12 @@ git clone https://github.com/aliakbars/facct-tutorial.git
 
 Install Poetry, a dependency manager for Python:
 ```bash
-curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+pip install poetry
 ```
 
-Alternatively, you can install Poetry using pip:
+Alternatively, you can install Poetry from git:
 ```bash
-pip install poetry
+curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
 ```
 
 Navigate to the project directory and use Poetry to install the required dependencies:
