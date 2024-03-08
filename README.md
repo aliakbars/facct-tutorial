@@ -27,7 +27,8 @@ poetry install
 
 ## Configuration
 
-Before running the app, you may need to adjust some settings in the `config.yml` file. This file is located in the root directory and contains configuration settings for the app. Check the file and adjust any settings as necessary. By default, this app is configured for collecting data with [Prolific](https://www.prolific.co/), but you can change the `redirect_url` if needed.
+> [!NOTE]
+> Before running the app, you may need to adjust some settings in the `config.yml` file. This file is located in the root directory and contains configuration settings for the app. Check the file and adjust any settings as necessary. By default, this app is configured for collecting data with [Prolific](https://www.prolific.co/), but you can change the `redirect_url` if needed.
 
 ## Usage
 
@@ -46,7 +47,10 @@ after changing the `papers_file` argument in the `config.yml` file.
 
 ## Putting Into Production
 
-Follow the steps described in this [blog post](https://dylancastillo.co/fastapi-nginx-gunicorn/#step-3-set-up-your-fastapi-app) to put the app into production. Make sure you only set 1 worker to avoid multiple submissions for the same set of papers. Use config files provided in the `configs` folder for `supervisor`. The `weird.conf` file is for the main app, whereas the `wlock.conf` file is for releasing the locks of the papers to avoid double entries.
+Follow the steps described in this [blog post](https://dylancastillo.co/fastapi-nginx-gunicorn/#step-3-set-up-your-fastapi-app) to put the app into production.
+
+> [!NOTE]
+> When you are putting the app into production, make sure you point to the correct directories in `wlock.conf`, `weird.conf`, and `gunicorn_start`. Also, make sure you only set 1 worker to avoid multiple submissions for the same set of papers. Use config files provided in the `configs` folder for `supervisor`. The `weird.conf` file is for the main app, whereas the `wlock.conf` file is for releasing the locks of the papers to avoid double entries.
 
 ## Contributing
 
