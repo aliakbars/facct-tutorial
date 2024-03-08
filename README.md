@@ -37,13 +37,15 @@ To run the app, use Uvicorn, a lightning-fast ASGI server for Python:
 poetry run uvicorn main:app --reload
 ```
 
-This will start the app on `http://localhost:8000/`. Navigate to this URL in your web browser to see the app in action!
+This will start the app on `http://localhost:8000/`, but you may see a landing page saying that there are no papers to annotate at this stage.
 
 To add papers to your database, run:
 ```bash
 poetry run python utils.py add-papers
 ```
 after changing the `papers_file` argument in the `config.yml` file.
+
+Rerun the app again and go to `http://localhost:8000/?PROLIFIC_PID=1&SESSION_ID=1&STUDY_ID=1` to test the app. You should see the page to annotate a set of 5 papers.
 
 ## Putting Into Production
 
