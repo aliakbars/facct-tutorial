@@ -53,16 +53,16 @@ Rerun the app again and go to `http://localhost:8000/?PROLIFIC_PID=1&SESSION_ID=
 ```bash
 sudo apt install supervisor
 ```
-1. Identify your virtual environment folder by running:
+2. Identify your virtual environment folder by running:
 ```bash
 poetry shell
 ```
-1. Change the `DIR` path to the directory of your app and change the `VENV` path to the virtual environment you got from the previous step.
-1. Update the `configs/weird.conf` file by changing the path for `command` and `stdout_logfile`, ensuring the correct absolute path, i.e. not using `~/`.
-1. Update the `configs/wlock.conf` file by changing the path for `command` to the Python path in your virtual environment (changing the `.../activate` you got from step 2 to `.../python`)
-1. Copy the `configs/weird.conf` and `configs/wlock.conf` files to `/etc/supervisor/conf.d`. You need `sudo` access for this.
-1. Restart `supervisor`, e.g. `sudo service supervisor restart`.
-1. Setup NGINX by following the steps described in this [blog post](https://dylancastillo.co/fastapi-nginx-gunicorn/#step-5-configure-nginx). Make sure you change the paths to your app.
+3. Change the `DIR` path to the directory of your app and change the `VENV` path to the virtual environment you got from the previous step.
+4. Update the `configs/weird.conf` file by changing the path for `command` and `stdout_logfile`, ensuring the correct absolute path, i.e. not using `~/`.
+5. Update the `configs/wlock.conf` file by changing the path for `command` to the Python path in your virtual environment (changing the `.../activate` you got from step 2 to `.../python`)
+6. Copy the `configs/weird.conf` and `configs/wlock.conf` files to `/etc/supervisor/conf.d`. You need `sudo` access for this.
+7. Restart `supervisor`, e.g. `sudo service supervisor restart`.
+8. Setup NGINX by following the steps described in this [blog post](https://dylancastillo.co/fastapi-nginx-gunicorn/#step-5-configure-nginx). Make sure you change the paths to your app.
 
 The `weird.conf` file is for the main app, whereas the `wlock.conf` file is for releasing the locks of the papers to avoid double entries. Make sure you only set 1 worker to avoid multiple submissions for the same set of papers.
 
